@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 text-center">
+        <div class="card">
+            <div class="card-body p-5">
+                <i class="fas fa-shield-alt" style="font-size: 80px; color: #667eea;"></i>
+                <h1 class="mt-4">Web Application Firewall</h1>
+                <p class="lead mt-3">
+                    Защитите ваш веб-сайт от SQL инъекций, XSS атак и других угроз
+                </p>
+                <div class="mt-5">
+                    <a href="/register" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-user-plus"></i> Начать
+                    </a>
+                    <a href="/login" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-sign-in-alt"></i> Войти
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="fas fa-database" style="font-size: 40px; color: #667eea;"></i>
+                        <h5 class="mt-3">Защита от SQL инъекций</h5>
+                        <p>Блокируем попытки взлома базы данных</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="fas fa-code" style="font-size: 40px; color: #667eea;"></i>
+                        <h5 class="mt-3">Защита от XSS</h5>
+                        <p>Предотвращаем внедрение вредоносного кода</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="fas fa-chart-line" style="font-size: 40px; color: #667eea;"></i>
+                        <h5 class="mt-3">Статистика в реальном времени</h5>
+                        <p>Отслеживайте все атаки на ваш сайт</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

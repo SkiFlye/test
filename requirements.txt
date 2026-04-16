@@ -1,0 +1,5 @@
+flask==3.0.0
+flask-login==0.6.3
+aiohttp==3.9.0
+sqlalchemy==2.0.23
+werkzeug==3.0.1

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block content %}
+<div>
+    <h2 class="mb-4"><i class="fas fa-gavel"></i> Правила безопасности</h2>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Управление правилами WAF</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Название правила</th>
+                            <th>Severity</th>
+                            <th>Статус</th>
+                            <th>Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rule in rules %}
+                        <tr>
+                            <td>{{ rule.id }}</td>
+                            <td>{{ rule.name }}</td>
+                            <td>
+                                {% if rule.severity == 'critical' %}
+                                <span class="badge badge-critical">critical</span>
+                                {% elif rule.severity == 'high' %}
+                                <span class="badge bg-danger">high</span>
+                                {% elif rule.severity == 'medium' %}
+                                <span class="badge bg-warning">medium</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ rule.severity }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if rule.enabled %}
+                                <span class="badge bg-success">Включено</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Выключено</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <label class="switch">
+                                    <input type="checkbox"
+                                           {% if rule.enabled %}checked{% endif %}
+                                           onchange="toggleRule({{ rule.id }}, this.checked)">
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-info-circle"></i> О правилах</h5>
+        </div>
+        <div class="card-body">
+            <p>Правила WAF работают на основе сигнатурного анализа. Каждое правило содержит регулярное выражение, которое ищет характерные паттерны атак.</p>
+            <ul>
+                <li><strong>SQL Injection</strong> - защита от атак на базу данных</li>
+                <li><strong>XSS</strong> - защита от межсайтового скриптинга</li>
+                <li><strong>Path Traversal</strong> - защита от попыток чтения системных файлов</li>
+                <li><strong>Command Injection</strong> - защита от выполнения команд на сервере</li>
+                <li><strong>Scanner detection</strong> - блокировка известных сканеров уязвимостей</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleRule(ruleId, enabled) {
+    fetch('/toggle_rule', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            rule_id: ruleId,
+            enabled: enabled
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}

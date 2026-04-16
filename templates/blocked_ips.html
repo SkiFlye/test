@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block content %}
+<div>
+    <h2 class="mb-4"><i class="fas fa-ban"></i> Заблокированные IP адреса</h2>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Активные блокировки</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>IP адрес</th>
+                            <th>Заблокирован до</th>
+                            <th>Причина</th>
+                            <th>Осталось времени</th>
+                            <th>Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for block in blocked_ips %}
+                        <tr>
+                            <td><code>{{ block.ip }}</code></td>
+                            <td>{{ block.blocked_until.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            <td>{{ block.reason }}</td>
+                            <td id="timer-{{ loop.index }}"></td>
+                            <td>
+                                <button class="btn btn-sm btn-success" onclick="unblockIP('{{ block.ip }}')">
+                                    <i class="fas fa-check"></i> Разблокировать
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center">
+                                <i class="fas fa-check-circle"></i> Нет заблокированных IP
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Информация о блокировках</h5>
+        </div>
+        <div class="card-body">
+            <p>IP адреса блокируются автоматически в следующих случаях:</p>
+            <ul>
+                <li><strong>Rate Limit превышен</strong> - более 60 запросов в минуту (блокировка на 60 секунд)</li>
+                <li><strong>Множественные атаки</strong> - многократные попытки SQL инъекций или XSS (блокировка на 300 секунд)</li>
+            </ul>
+            <p>Вы можете разблокировать IP вручную в любое время.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function unblockIP(ip) {
+    if (confirm(`Разблокировать IP ${ip}?`)) {
+        fetch('/unblock_ip', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ip: ip })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
+}
+
+function updateTimers() {
+    {% for block in blocked_ips %}
+    const until = new Date("{{ block.blocked_until.isoformat() }}");
+    const now = new Date();
+    const diff = Math.max(0, Math.floor((until - now) / 1000));
+
+    if (diff > 0) {
+        const hours = Math.floor(diff / 3600);
+        const minutes = Math.floor((diff % 3600) / 60);
+        const seconds = diff % 60;
+
+        let text = "";
+        if (hours > 0) text += `${hours}ч `;
+        if (minutes > 0 || hours > 0) text += `${minutes}м `;
+        text += `${seconds}с`;
+
+        document.getElementById(`timer-{{ loop.index }}`).innerText = text;
+    } else {
+        document.getElementById(`timer-{{ loop.index }}`).innerText = "Истекло";
+    }
+    {% endfor %}
+}
+
+setInterval(updateTimers, 1000);
+updateTimers();
+</script>
+{% endblock %}

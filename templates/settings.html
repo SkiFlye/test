@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block content %}
+<div>
+    <h2 class="mb-4"><i class="fas fa-cog"></i> Настройки</h2>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-key"></i> API Ключ</h5>
+                </div>
+                <div class="card-body">
+                    <label class="form-label">Ваш API-ключ для подключения сайта</label>
+                    <div class="api-key">
+                        <code>{{ user.api_key }}</code>
+                    </div>
+                    <form method="POST" class="mt-3">
+                        <button type="submit" name="generate_api_key" class="btn btn-warning">
+                            <i class="fas fa-sync-alt"></i> Сгенерировать новый ключ
+                        </button>
+                    </form>
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i>
+                        При генерации нового ключа старый перестанет работать
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-tachometer-alt"></i> Rate Limit</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <label class="form-label">Максимум запросов в минуту с одного IP</label>
+                        <div class="input-group">
+                            <input type="number" name="rate_limit" class="form-control"
+                                   value="{{ user.rate_limit }}" min="10" max="1000">
+                            <button type="submit" name="update_rate_limit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Сохранить
+                            </button>
+                        </div>
+                    </form>
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i>
+                        При превышении лимита IP блокируется на 60 секунд
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-plug"></i> Инструкция по подключению</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Шаг 1: Настройте ваш веб-сервер</h6>
+                    <p>Перенаправьте все запросы на WAF сервер:</p>
+                    <pre><code># Пример для Nginx
+location / {
+    proxy_pass http://YOUR_WAF_IP:8080;
+    proxy_set_header X-API-Key "{{ user.api_key }}";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}</code></pre>
+
+                    <h6 class="mt-3">Шаг 2: Проверьте подключение</h6>
+                    <p>Отправьте тестовый запрос через curl:</p>
+                    <pre><code>curl -H "X-API-Key: {{ user.api_key }}" http://YOUR_WAF_IP:8080/test</code></pre>
+
+                    <h6 class="mt-3">Шаг 3: Мониторинг</h6>
+                    <p>Отслеживайте атаки и статистику в вашем личном кабинете</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Опасная зона</h5>
+                </div>
+                <div class="card-body">
+                    <p>Удаление аккаунта приведет к потере всей статистики и настроек.</p>
+                    <form method="POST" onsubmit="return confirm('Вы уверены? Это действие необратимо!')">
+                        <button type="submit" name="delete_account" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Удалить аккаунт
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

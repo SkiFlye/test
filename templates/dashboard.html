@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block content %}
+<div>
+    <h2 class="mb-4">
+        <i class="fas fa-chart-line"></i> Дашборд
+        <small class="text-muted">Добро пожаловать, {{ current_user.email }}</small>
+    </h2>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.total }}</div>
+                <div class="stat-label">Всего запросов</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-number" style="color: #dc3545;">{{ stats.blocked }}</div>
+                <div class="stat-label">Заблокировано атак</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-number" style="color: #ffc107;">{{ stats.rate_limited }}</div>
+                <div class="stat-label">Rate Limit блокировки</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-number">{{ blocked_ips|length }}</div>
+                <div class="stat-label">Заблокированных IP</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Атаки по дням</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="attacksChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> API Инструкция</h5>
+                </div>
+                <div class="card-body">
+                    <p>Для подключения вашего сайта к WAF:</p>
+                    <ol>
+                        <li>Скопируйте ваш API-ключ в настройках</li>
+                        <li>Настройте ваш сервер отправлять все запросы на:</li>
+                        <code>http://YOUR_WAF_IP:8080</code>
+                        <li class="mt-2">Добавьте заголовок:</li>
+                        <code>X-API-Key: ваш_ключ</code>
+                    </ol>
+                    <a href="/settings" class="btn btn-sm btn-primary">
+                        <i class="fas fa-cog"></i> Перейти к настройкам
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bug"></i> Последние атаки</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Время</th>
+                                    <th>IP</th>
+                                    <th>Метод</th>
+                                    <th>URL</th>
+                                    <th>Правило</th>
+                                    <th>Severity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for attack in recent_attacks %}
+                                <tr>
+                                    <td>{{ attack.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                    <td><code>{{ attack.client_ip }}</code></td>
+                                    <td>{{ attack.method }}</td>
+                                    <td><small>{{ attack.url[:50] }}{% if attack.url|length > 50 %}...{% endif %}</small></td>
+                                    <td>{{ attack.rule_name or 'N/A' }}</td>
+                                    <td>
+                                        {% if attack.severity == 'critical' %}
+                                        <span class="badge badge-critical">critical</span>
+                                        {% elif attack.severity == 'high' %}
+                                        <span class="badge bg-danger">high</span>
+                                        {% elif attack.severity == 'medium' %}
+                                        <span class="badge bg-warning">medium</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ attack.severity }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center">Нет атак</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('attacksChart').getContext('2d');
+    const daily = {{ stats.daily|tojson }};
+    const labels = Object.keys(daily).sort();
+    const totalData = labels.map(d => daily[d].total);
+    const blockedData = labels.map(d => daily[d].blocked);
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Всего запросов',
+                    data: totalData,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'Заблокировано',
+                    data: blockedData,
+                    borderColor: '#dc3545',
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
