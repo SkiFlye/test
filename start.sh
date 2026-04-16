@@ -1,5 +1,5 @@
 #!/bin/bash
-cd rabochiy-proyect_Yandex # Your app working directory!!!
+cd test # Your app working directory!!!
 export PORT=5000
 unset PIP_USER
 
