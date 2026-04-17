@@ -1,23 +1,39 @@
 #!/bin/bash
-cd test # Your app working directory!!!
-export PORT=5000
-unset PIP_USER
 
-# Create venv if not exists
+# Переходим в папку с проектом (корень)
+cd /home/runner/${REPL_SLUG}
+
+echo "=========================================="
+echo "🛡️ Запуск WAF Сервиса на Replit"
+echo "=========================================="
+
+# Создаём виртуальное окружение если нет
 if [ ! -d "venv" ]; then
-    echo "Creating virtual environment with system site packages..."
-    python3 -m venv venv --system-site-packages
+    echo "📦 Создание виртуального окружения..."
+    python3 -m venv venv
 fi
 
-# Activate
+# Активируем виртуальное окружение
 source venv/bin/activate
 
-# Try install (might fail if pip is broken, but packages should be there from packager_tool)
+# Обновляем pip
+echo "📦 Обновление pip..."
+pip install --upgrade pip
+
+# Устанавливаем зависимости
 if [ -f "requirements.txt" ]; then
-    echo "Checking dependencies..."
-    # We skip pip install if it fails, assuming packager_tool handled it
-    pip install -r requirements.txt || echo "Pip install failed, but continuing as packages might be pre-installed via system."
+    echo "📦 Установка зависимостей из requirements.txt..."
+    pip install -r requirements.txt
+else
+    echo "❌ requirements.txt не найден!"
+    exit 1
 fi
 
-echo "Starting application..."
-python start.py
+echo "=========================================="
+echo "🚀 Запуск приложения..."
+echo "📊 Сайт (админка): порт 5000"
+echo "🛡️ WAF прокси: порт 8080"
+echo "=========================================="
+
+# Запускаем приложение
+python main.py
